@@ -11,11 +11,11 @@
     "email": "ceruttigabriel@gmail.com",
     "url": "https://github.com/gabrielcerutti"
   },
-  "homepage": "https://github.com/gabrielcerutti/etoro-mcp-connector",
-  "support": "https://github.com/gabrielcerutti/etoro-mcp-connector/issues",
+  "homepage": "https://github.com/gabrielcerutti/etoro-mcp-server",
+  "support": "https://github.com/gabrielcerutti/etoro-mcp-server/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gabrielcerutti/etoro-mcp-connector"
+    "url": "https://github.com/gabrielcerutti/etoro-mcp-server"
   },
   "keywords": ["etoro", "trading", "finance", "portfolio", "crypto", "stocks"],
   "server": {
