@@ -5,6 +5,7 @@
 
   Connect Claude to your eToro account for portfolio management, trading, and market research.
 
+  [![CI](https://img.shields.io/github/actions/workflow/status/gabriel-cerutti/etoro-mcp/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/gabriel-cerutti/etoro-mcp/actions/workflows/ci.yml)
   [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen?style=flat-square)](https://nodejs.org)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=flat-square)](https://www.typescriptlang.org)
   [![MCP SDK](https://img.shields.io/badge/MCP%20SDK-1.26%2B-purple?style=flat-square)](https://modelcontextprotocol.io)
