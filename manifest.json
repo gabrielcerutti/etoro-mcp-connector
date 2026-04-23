@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "etoro",
   "display_name": "eToro",
-  "version": "1.0.6",
+  "version": "1.0.1",
   "description": "Connect Claude to your eToro account for portfolio management, trading, and market research.",
   "icon": "etoro.png",
   "license": "MIT",
