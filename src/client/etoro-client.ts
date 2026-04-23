@@ -17,11 +17,11 @@ export class EtoroClient {
       "Content-Type": "application/json",
       "x-request-id": randomUUID(),
     };
-    if (this.config.userKey) {
-      headers["x-api-key"] = this.config.userKey;
-    }
     if (this.config.apiKey) {
-      headers["x-user-key"] = this.config.apiKey;
+      headers["x-api-key"] = this.config.apiKey;
+    }
+    if (this.config.userKey) {
+      headers["x-user-key"] = this.config.userKey;
     }
     return headers;
   }

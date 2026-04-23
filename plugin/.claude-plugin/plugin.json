@@ -1,0 +1,9 @@
+{
+  "name": "etoro-trading-platform",
+  "version": "1.0.0",
+  "description": "Connects Claude to your local eToro MCP server for portfolio management, trading, and market research.",
+  "author": {
+    "name": "Gabriel Cerutti",
+    "email": "ceruttigabriel@gmail.com"
+  }
+}

@@ -154,45 +154,59 @@ The assistant creates the watchlist and adds the instruments:
 > - **BTC**: $68,503 (bid) / $68,520 (ask)
 > - **ETH**: $1,801 (bid) / $1,803 (ask)
 
-## Setup
+---
 
-### 1. Build
+## Installation
+
+### Claude Desktop (recommended)
+
+Download the latest `etoro-mcp.mcpb` from the [Releases](../../releases) page and drag it into Claude Desktop:
+
+**Extensions → drag `etoro-mcp.mcpb` into the window**
+
+You'll be prompted to enter your eToro API Key and User Key. That's it.
+
+> **Get your keys:** Log in to eToro → Settings → Trading → Create New Key. Choose your environment (Demo or Real) and permissions (Read or Write).
+
+---
+
+### Claude Code / Claude Desktop (manual setup)
+
+For developers who want to run from source or integrate with Claude Code CLI.
+
+#### 1. Build
 
 ```bash
 npm install
 npm run build
 ```
 
-### 2. Configure credentials
-
-You need an eToro API key and user key. There are two ways to pass them:
-
-#### Option A: Environment variables (recommended for Claude Code)
+#### 2. Add to Claude Code
 
 ```bash
 claude mcp add etoro-mcp \
   -e ETORO_API_KEY=your-api-key \
   -e ETORO_USER_KEY=your-user-key \
   -e ETORO_TRADING_MODE=demo \
-  node "C:\Users\orkblutt\Documents\eToro-MCP\dist\index.js"
+  node /path/to/etoro-mcp/dist/index.js
 ```
 
-#### Option B: CLI arguments
+Or via CLI arguments:
 
 ```bash
 claude mcp add etoro-mcp \
-  node "C:\Users\orkblutt\Documents\eToro-MCP\dist\index.js" \
+  node /path/to/etoro-mcp/dist/index.js \
   -- --api-key your-api-key --user-key your-user-key --trading-mode demo
 ```
 
-#### Option C: Claude Desktop (`claude_desktop_config.json`)
+#### 3. Add to Claude Desktop (`claude_desktop_config.json`)
 
 ```json
 {
   "mcpServers": {
     "etoro-mcp": {
       "command": "node",
-      "args": ["C:\\Users\\orkblutt\\Documents\\eToro-MCP\\dist\\index.js"],
+      "args": ["/path/to/etoro-mcp/dist/index.js"],
       "env": {
         "ETORO_API_KEY": "your-api-key",
         "ETORO_USER_KEY": "your-user-key",
@@ -203,12 +217,7 @@ claude mcp add etoro-mcp \
 }
 ```
 
-### 3. Restart the MCP server
-
-After changing config, restart the server:
-
-- **Claude Code:** type `/mcp` and restart the server, or restart Claude Code
-- **Claude Desktop:** restart the app
+---
 
 ## Configuration
 
@@ -218,11 +227,14 @@ After changing config, restart the server:
 | User Key | `ETORO_USER_KEY` | `--user-key` | (none) |
 | Trading Mode | `ETORO_TRADING_MODE` | `--trading-mode` | `demo` |
 
-**Trading mode:** `demo` routes trading calls through eToro's demo/virtual account. Set to `real` for live trading.
+**Trading mode:** `demo` routes all trading calls through eToro's virtual account. Set to `real` only when you're ready to trade with real money.
+
+---
 
 ## Tools (34 total)
 
 ### Market Data (8)
+
 | Tool | Description |
 |---|---|
 | `search_instruments` | Search instruments by keyword (e.g. "AAPL", "Bitcoin") |
@@ -235,6 +247,7 @@ After changing config, restart the server:
 | `get_rates` | Get live bid/ask rates |
 
 ### Trading (7)
+
 | Tool | Description |
 |---|---|
 | `open_position_by_amount` | Open position by USD amount |
@@ -246,6 +259,7 @@ After changing config, restart the server:
 | `get_portfolio` | Get all open positions |
 
 ### Social Feeds (4)
+
 | Tool | Description |
 |---|---|
 | `get_instrument_feed` | Get social feed for an instrument |
@@ -254,6 +268,7 @@ After changing config, restart the server:
 | `create_comment` | Comment on a post |
 
 ### Watchlists (9)
+
 | Tool | Description |
 |---|---|
 | `get_watchlists` | List your watchlists |
@@ -267,6 +282,7 @@ After changing config, restart the server:
 | `get_public_watchlists` | Browse public watchlists |
 
 ### User & Discovery (6)
+
 | Tool | Description |
 |---|---|
 | `get_user_profile` | Get a user's public profile |

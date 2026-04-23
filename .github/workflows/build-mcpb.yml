@@ -1,0 +1,92 @@
+name: Build MCPB Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to set in manifest.json (e.g. 1.0.1). Leave empty to use current."
+        required: false
+        type: string
+      release_notes:
+        description: "Release notes (shown on the GitHub release page)."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bump version in manifest.json
+        if: ${{ inputs.version != '' }}
+        run: |
+          node -e "
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            m.version = '${{ inputs.version }}';
+            fs.writeFileSync('manifest.json', JSON.stringify(m, null, 2) + '\n');
+            console.log('Version set to ${{ inputs.version }}');
+          "
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(node -e "console.log(require('./manifest.json').version)")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Package MCPB
+        run: npx @anthropic-ai/mcpb pack . etoro-${{ steps.get_version.outputs.version }}.mcpb
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: etoro-connector-v${{ steps.get_version.outputs.version }}
+          path: etoro-${{ steps.get_version.outputs.version }}.mcpb
+          retention-days: 90
+
+      - name: Commit version bump
+        if: ${{ inputs.version != '' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifest.json
+          git commit -m "chore: bump version to v${{ steps.get_version.outputs.version }}"
+          git push
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: eToro Connector v${{ steps.get_version.outputs.version }}
+          body: |
+            ## Installation
+
+            1. Download `etoro-${{ steps.get_version.outputs.version }}.mcpb` below.
+            2. Open Claude Desktop → Extensions → drag the file in.
+            3. Enter your eToro API Key and User Key when prompted.
+
+            ${{ inputs.release_notes != '' && format('## What''s New\n\n{0}', inputs.release_notes) || '' }}
+
+            ---
+            > Get your API keys at [etoro.com](https://etoro.com) → Settings → Trading → Create Your API Key.
+          files: etoro-${{ steps.get_version.outputs.version }}.mcpb
+          make_latest: true

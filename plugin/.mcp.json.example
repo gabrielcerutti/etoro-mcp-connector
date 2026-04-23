@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "etoro": {
+      "type": "http",
+      "url": "https://YOUR_NGROK_URL/mcp",
+      "headers": {
+        "x-api-key": "your-api-key-here",
+        "x-user-key": "your-user-key-here",
+        "x-trading-mode": "demo"
+      }
+    }
+  }
+}

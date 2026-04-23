@@ -1,0 +1,60 @@
+{
+  "manifest_version": "0.3",
+  "name": "etoro",
+  "display_name": "eToro",
+  "version": "1.0.0",
+  "description": "Connect Claude to your eToro account for portfolio management, trading, and market research.",
+  "icon": "etoro.png",
+  "author": {
+    "name": "Gabriel Cerutti",
+    "email": "ceruttigabriel@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gabriel-cerutti/etoro-mcp"
+  },
+  "keywords": ["etoro", "trading", "finance", "portfolio", "crypto", "stocks"],
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "ETORO_API_KEY": "${user_config.api_key}",
+        "ETORO_USER_KEY": "${user_config.user_key}",
+        "ETORO_TRADING_MODE": "${user_config.trading_mode}"
+      }
+    }
+  },
+  "tools_generated": true,
+  "user_config": {
+    "api_key": {
+      "type": "string",
+      "title": "API Key",
+      "description": "Your eToro API key (x-api-key header value).",
+      "sensitive": true,
+      "required": true
+    },
+    "user_key": {
+      "type": "string",
+      "title": "User Key",
+      "description": "Your eToro user key (x-user-key header value) tied to your account.",
+      "sensitive": true,
+      "required": true
+    },
+    "trading_mode": {
+      "type": "string",
+      "title": "Trading Mode",
+      "description": "Use 'demo' for the practice account or 'real' for live trading.",
+      "default": "demo",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": ["win32", "darwin", "linux"],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  }
+}

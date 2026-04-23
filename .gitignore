@@ -3,3 +3,8 @@ dist/
 .env
 *.tsbuildinfo
 .claude
+plugin/.mcp.json
+*.dxt
+*.mcpb
+*.plugin
+CLAUDE.md

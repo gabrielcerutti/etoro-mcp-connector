@@ -1,0 +1,40 @@
+# Source TypeScript (compiled output in dist/ is sufficient)
+src/
+tsconfig.json
+
+# Dev dependencies
+node_modules/typescript/
+node_modules/undici-types/
+node_modules/@types/
+
+# Tests
+tests/
+*.test.js
+*.spec.js
+
+# Local config and secrets
+.env
+.env.local
+.env.development
+.env.production
+
+# Git and CI
+.git/
+.gitignore
+.github/
+
+# Claude-specific
+.claude/
+CLAUDE.md
+
+# Docs
+README.md
+
+# Plugin/cowork files (not part of the connector)
+plugin/
+
+# Build artifacts
+*.mcpb
+*.dxt
+*.plugin
+build/
