@@ -1,6 +1,6 @@
 {
   "name": "etoro-mcp-server",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "MCP server wrapping the eToro public API",
   "mcpName": "io.github.gabrielcerutti/etoro-mcp-server",
   "main": "dist/index.js",
