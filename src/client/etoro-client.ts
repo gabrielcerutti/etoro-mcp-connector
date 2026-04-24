@@ -5,6 +5,30 @@ import { logger } from "../utils/logger.js";
 
 const BASE_URL = "https://public-api.etoro.com/api/v1";
 
+function friendlyErrorMessage(status: number, statusText: string, body: unknown, mode: string): string {
+  const apiMessage =
+    body && typeof body === "object" && "message" in body && typeof (body as { message: unknown }).message === "string"
+      ? (body as { message: string }).message
+      : undefined;
+
+  if (status === 401 || status === 403) {
+    return `Authentication failed (${status}). Verify ETORO_API_KEY and ETORO_USER_KEY, and that they match the trading mode "${mode}".`;
+  }
+  if (status === 404) {
+    return `Not found (404): ${apiMessage ?? statusText}. Check the resource identifier (instrumentId, positionId, username, etc.).`;
+  }
+  if (status === 429) {
+    return "Rate limited (429). Wait a moment and retry.";
+  }
+  if (status >= 400 && status < 500) {
+    return `Request rejected (${status}): ${apiMessage ?? statusText}.`;
+  }
+  if (status >= 500) {
+    return `eToro API unavailable (${status} ${statusText}). This is a server-side issue; retry in a moment.`;
+  }
+  return `Request failed: ${status} ${statusText}`;
+}
+
 export class EtoroClient {
   constructor(private config: Config) {}
 
@@ -68,7 +92,7 @@ export class EtoroClient {
         body = JSON.parse(text);
       } catch { /* keep as raw text */ }
       throw new EtoroApiError(
-        `Request failed: ${response.status} ${response.statusText}`,
+        friendlyErrorMessage(response.status, response.statusText, body, this.config.tradingMode),
         response.status,
         body
       );

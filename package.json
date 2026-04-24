@@ -1,6 +1,6 @@
 {
   "name": "etoro-mcp-server",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "MCP server wrapping the eToro public API",
   "mcpName": "io.github.gabrielcerutti/etoro-mcp-server",
   "repository": {
@@ -11,6 +11,16 @@
   "bugs": {
     "url": "https://github.com/gabrielcerutti/etoro-mcp-server/issues"
   },
+  "keywords": [
+    "etoro",
+    "trading",
+    "finance",
+    "portfolio",
+    "crypto",
+    "stocks",
+    "ETFs",
+    "MCP"
+  ],
   "license": "MIT",
   "author": "Gabriel Cerutti <ceruttigabriel@gmail.com>",
   "main": "dist/index.js",

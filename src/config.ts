@@ -53,6 +53,12 @@ export function loadConfig(): Config {
   };
 
   logger.info(`Trading mode: ${config.tradingMode}`);
+  if (config.tradingMode === "real") {
+    logger.warn("================================================================");
+    logger.warn("  TRADING MODE: REAL — orders will execute with REAL MONEY.");
+    logger.warn("  Verify your API key is a real-account key before proceeding.");
+    logger.warn("================================================================");
+  }
   if (!config.apiKey) {
     logger.warn("No API key configured. Set ETORO_API_KEY or pass --api-key.");
   }

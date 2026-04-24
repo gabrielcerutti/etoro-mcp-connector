@@ -8,3 +8,6 @@ plugin/.mcp.json
 *.mcpb
 *.plugin
 CLAUDE.md
+server.json
+mcp-publisher.exe
+skills-lock.json

@@ -45,23 +45,29 @@ function trimWatchlists(data: WatchlistsResponse) {
 }
 
 export function registerWatchlistsTools(server: McpServer, client: EtoroClient): void {
-  // 1. get_watchlists
-  server.tool(
-    "get_watchlists",
-    "Get all watchlists for the current user",
-    {},
+  server.registerTool(
+    "etoro_get_watchlists",
+    {
+      title: "List watchlists",
+      description: "Get all watchlists for the current user.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true, idempotentHint: true },
+    },
     withErrorHandling(async () => {
       const data = await client.get<WatchlistsResponse>("/watchlists");
       return formatToolResponse(trimWatchlists(data));
     })
   );
 
-  // 2. create_watchlist
-  server.tool(
-    "create_watchlist",
-    "Create a new watchlist",
+  server.registerTool(
+    "etoro_create_watchlist",
     {
-      name: z.string().describe("Name for the new watchlist (max 100 chars)"),
+      title: "Create watchlist",
+      description: "Create a new watchlist with the given name.",
+      inputSchema: {
+        name: z.string().min(1).max(100).describe("Name for the new watchlist (max 100 chars)"),
+      },
+      annotations: { destructiveHint: false },
     },
     withErrorHandling(async (args) => {
       const params = new URLSearchParams({ name: args.name });
@@ -70,12 +76,15 @@ export function registerWatchlistsTools(server: McpServer, client: EtoroClient):
     })
   );
 
-  // 3. delete_watchlist
-  server.tool(
-    "delete_watchlist",
-    "Delete a watchlist by its ID",
+  server.registerTool(
+    "etoro_delete_watchlist",
     {
-      watchlistId: z.number().describe("Watchlist ID to delete"),
+      title: "Delete watchlist",
+      description: "Delete a watchlist by its ID.",
+      inputSchema: {
+        watchlistId: z.number().int().positive().describe("Watchlist ID to delete"),
+      },
+      annotations: { destructiveHint: true, idempotentHint: true },
     },
     withErrorHandling(async (args) => {
       const data = await client.delete(`/watchlists/${args.watchlistId}`);
@@ -83,13 +92,16 @@ export function registerWatchlistsTools(server: McpServer, client: EtoroClient):
     })
   );
 
-  // 4. rename_watchlist
-  server.tool(
-    "rename_watchlist",
-    "Rename an existing watchlist",
+  server.registerTool(
+    "etoro_rename_watchlist",
     {
-      watchlistId: z.number().describe("Watchlist ID to rename"),
-      name: z.string().describe("New name for the watchlist (max 100 chars)"),
+      title: "Rename watchlist",
+      description: "Rename an existing watchlist.",
+      inputSchema: {
+        watchlistId: z.number().int().positive().describe("Watchlist ID to rename"),
+        name: z.string().min(1).max(100).describe("New name for the watchlist (max 100 chars)"),
+      },
+      annotations: { idempotentHint: true },
     },
     withErrorHandling(async (args) => {
       const params = new URLSearchParams({ newName: args.name });
@@ -98,48 +110,51 @@ export function registerWatchlistsTools(server: McpServer, client: EtoroClient):
     })
   );
 
-  // 5. add_watchlist_items
-  server.tool(
-    "add_watchlist_items",
-    "Add instruments to an existing watchlist",
+  server.registerTool(
+    "etoro_add_watchlist_items",
     {
-      watchlistId: z.number().describe("Watchlist ID"),
-      instrumentIds: z.array(z.number()).describe("Instrument IDs to add"),
+      title: "Add items to watchlist",
+      description: "Add one or more instruments to an existing watchlist.",
+      inputSchema: {
+        watchlistId: z.number().int().positive().describe("Watchlist ID"),
+        instrumentIds: z.array(z.number().int().positive()).min(1).max(100).describe("Instrument IDs to add (1–100)"),
+      },
+      annotations: { idempotentHint: true },
     },
     withErrorHandling(async (args) => {
-      // API expects a plain array of instrument IDs
-      const data = await client.post(
-        `/watchlists/${args.watchlistId}/items`,
-        args.instrumentIds
-      );
+      const data = await client.post(`/watchlists/${args.watchlistId}/items`, args.instrumentIds);
       return formatToolResponse(data);
     })
   );
 
-  // 6. remove_watchlist_item
-  server.tool(
-    "remove_watchlist_item",
-    "Remove an instrument from a watchlist",
+  server.registerTool(
+    "etoro_remove_watchlist_item",
     {
-      watchlistId: z.number().describe("Watchlist ID"),
-      instrumentId: z.number().describe("Instrument ID to remove"),
+      title: "Remove item from watchlist",
+      description: "Remove an instrument from a watchlist.",
+      inputSchema: {
+        watchlistId: z.number().int().positive().describe("Watchlist ID"),
+        instrumentId: z.number().int().positive().describe("Instrument ID to remove"),
+      },
+      annotations: { destructiveHint: true, idempotentHint: true },
     },
     withErrorHandling(async (args) => {
-      // API expects DELETE with a body array of WatchlistItemDto
-      const data = await client.delete(
-        `/watchlists/${args.watchlistId}/items`,
-        [{ ItemId: args.instrumentId, ItemType: "Instrument" }]
-      );
+      const data = await client.delete(`/watchlists/${args.watchlistId}/items`, [
+        { ItemId: args.instrumentId, ItemType: "Instrument" },
+      ]);
       return formatToolResponse(data);
     })
   );
 
-  // 7. set_default_watchlist
-  server.tool(
-    "set_default_watchlist",
-    "Set a watchlist as the default watchlist",
+  server.registerTool(
+    "etoro_set_default_watchlist",
     {
-      watchlistId: z.number().describe("Watchlist ID to set as default"),
+      title: "Set default watchlist",
+      description: "Mark a watchlist as the user's default.",
+      inputSchema: {
+        watchlistId: z.number().int().positive().describe("Watchlist ID to set as default"),
+      },
+      annotations: { idempotentHint: true },
     },
     withErrorHandling(async (args) => {
       const data = await client.put(`/watchlists/setUserSelectedUserDefault/${args.watchlistId}`);
@@ -147,23 +162,29 @@ export function registerWatchlistsTools(server: McpServer, client: EtoroClient):
     })
   );
 
-  // 8. get_curated_lists
-  server.tool(
-    "get_curated_lists",
-    "Get eToro's curated/featured instrument lists",
-    {},
+  server.registerTool(
+    "etoro_get_curated_lists",
+    {
+      title: "Get curated lists",
+      description: "Get eToro's curated / featured instrument lists.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true, idempotentHint: true },
+    },
     withErrorHandling(async () => {
       const data = await client.get("/curated-lists");
       return formatToolResponse(data);
     })
   );
 
-  // 9. get_public_watchlists
-  server.tool(
-    "get_public_watchlists",
-    "Get publicly shared watchlists from a user",
+  server.registerTool(
+    "etoro_get_public_watchlists",
     {
-      userId: z.number().describe("User ID whose public watchlists to retrieve"),
+      title: "Get user's public watchlists",
+      description: "Get publicly shared watchlists from a specific user.",
+      inputSchema: {
+        userId: z.number().int().positive().describe("User ID whose public watchlists to retrieve"),
+      },
+      annotations: { readOnlyHint: true },
     },
     withErrorHandling(async (args) => {
       const data = await client.get(`/watchlists/public/${args.userId}`);

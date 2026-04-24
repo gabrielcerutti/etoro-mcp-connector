@@ -2,36 +2,40 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { EtoroClient } from "../client/etoro-client.js";
 import { formatToolResponse, withErrorHandling } from "../utils/errors.js";
+import { buildQueryString } from "../utils/http.js";
 
 export function registerMarketDataTools(server: McpServer, client: EtoroClient): void {
-  // 1. search_instruments
-  server.tool(
-    "search_instruments",
-    "Search for eToro instruments by keyword (stocks, crypto, ETFs, etc.)",
+  server.registerTool(
+    "etoro_search_instruments",
     {
-      query: z.string().describe("Search keyword (e.g. 'AAPL', 'Bitcoin', 'Tesla')"),
-      exactSymbol: z.boolean().optional().describe("If true, search by exact ticker symbol (e.g. 'AAPL') instead of free text"),
-      page: z.number().optional().describe("Page number (default 1)"),
-      pageSize: z.number().optional().describe("Results per page (default 20)"),
+      title: "Search instruments",
+      description: "Search eToro instruments (stocks, crypto, ETFs, etc.) by keyword or exact ticker.",
+      inputSchema: {
+        query: z.string().min(1).describe("Search keyword (e.g. 'AAPL', 'Bitcoin', 'Tesla')"),
+        exactSymbol: z.boolean().optional().describe("If true, match by exact ticker symbol (e.g. 'AAPL') instead of free-text"),
+        page: z.number().int().min(1).optional().describe("Page number (default 1)"),
+        pageSize: z.number().int().min(1).max(100).optional().describe("Results per page (default 10, max 100)"),
+      },
+      annotations: {
+        readOnlyHint: true,
+        openWorldHint: true,
+      },
     },
     withErrorHandling(async (args) => {
-      const params = new URLSearchParams();
-      if (args.exactSymbol) {
-        params.set("internalSymbolFull", args.query);
-      } else {
-        params.set("searchText", args.query);
-      }
-      if (args.page) params.set("pageNumber", String(args.page));
-      params.set("pageSize", String(args.pageSize || 10));
-      const data = await client.get<{ page: number; pageSize: number; totalItems: number; items: Record<string, unknown>[] }>(`/market-data/search?${params}`);
+      const query = buildQueryString({
+        [args.exactSymbol ? "internalSymbolFull" : "searchText"]: args.query,
+        pageNumber: args.page,
+        pageSize: args.pageSize ?? 10,
+      });
+      const data = await client.get<{ page: number; pageSize: number; totalItems: number; items: Record<string, unknown>[] }>(
+        `/market-data/search${query}`
+      );
 
-      // Extract instrument IDs from search results
       const ids = data.items
         .map((item) => item.instrumentId as number)
         .filter((id) => id !== undefined && id > 0);
 
-      // Enrich with instrument metadata if we have IDs
-      let enriched: Record<number, Record<string, unknown>> = {};
+      const enriched: Record<number, Record<string, unknown>> = {};
       if (ids.length > 0) {
         try {
           const meta = await client.get<{ instrumentDisplayDatas: Record<string, unknown>[] }>(
@@ -45,10 +49,14 @@ export function registerMarketDataTools(server: McpServer, client: EtoroClient):
         }
       }
 
-      const result = {
-        page: data.page,
-        pageSize: data.pageSize,
-        totalItems: data.totalItems,
+      const pageSize = data.pageSize;
+      const page = data.page;
+      const hasMore = page * pageSize < data.totalItems;
+      return formatToolResponse({
+        page,
+        pageSize,
+        total: data.totalItems,
+        hasMore,
         items: data.items.map((item) => {
           const id = item.instrumentId as number;
           const meta = enriched[id];
@@ -60,17 +68,19 @@ export function registerMarketDataTools(server: McpServer, client: EtoroClient):
             exchangeId: meta?.exchangeID ?? item.exchangeId,
           };
         }),
-      };
-      return formatToolResponse(result);
+      });
     })
   );
 
-  // 2. get_instruments
-  server.tool(
-    "get_instruments",
-    "Get details for one or more instruments by their IDs",
+  server.registerTool(
+    "etoro_get_instruments",
     {
-      instrumentIds: z.array(z.number()).describe("Array of instrument IDs"),
+      title: "Get instrument details",
+      description: "Get full details for one or more instruments by their IDs.",
+      inputSchema: {
+        instrumentIds: z.array(z.number().int().positive()).min(1).max(100).describe("Array of instrument IDs (1–100)"),
+      },
+      annotations: { readOnlyHint: true, idempotentHint: true },
     },
     withErrorHandling(async (args) => {
       const ids = args.instrumentIds.join(",");
@@ -79,48 +89,62 @@ export function registerMarketDataTools(server: McpServer, client: EtoroClient):
     })
   );
 
-  // 3. get_instrument_types
-  server.tool(
-    "get_instrument_types",
-    "Get all available instrument types (stocks, crypto, ETFs, etc.)",
-    {},
+  server.registerTool(
+    "etoro_get_instrument_types",
+    {
+      title: "List instrument types",
+      description: "List all instrument types eToro supports (stocks, crypto, ETFs, etc.).",
+      inputSchema: {},
+      annotations: { readOnlyHint: true, idempotentHint: true },
+    },
     withErrorHandling(async () => {
       const data = await client.get("/market-data/instrument-types");
       return formatToolResponse(data);
     })
   );
 
-  // 4. get_industries
-  server.tool(
-    "get_industries",
-    "Get all available industry classifications for instruments",
-    {},
+  server.registerTool(
+    "etoro_get_industries",
+    {
+      title: "List industries",
+      description: "List all industry classifications used for stock instruments.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true, idempotentHint: true },
+    },
     withErrorHandling(async () => {
       const data = await client.get("/market-data/stocks-industries");
       return formatToolResponse(data);
     })
   );
 
-  // 5. get_exchanges
-  server.tool(
-    "get_exchanges",
-    "Get all available stock exchanges",
-    {},
+  server.registerTool(
+    "etoro_get_exchanges",
+    {
+      title: "List exchanges",
+      description: "List all stock exchanges eToro supports.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true, idempotentHint: true },
+    },
     withErrorHandling(async () => {
       const data = await client.get("/market-data/exchanges");
       return formatToolResponse(data);
     })
   );
 
-  // 6. get_candles
-  server.tool(
-    "get_candles",
-    "Get OHLCV candle data for an instrument",
+  server.registerTool(
+    "etoro_get_candles",
     {
-      instrumentId: z.number().describe("Instrument ID"),
-      period: z.enum(["OneMinute", "FiveMinutes", "TenMinutes", "FifteenMinutes", "ThirtyMinutes", "OneHour", "FourHours", "OneDay", "OneWeek"]).describe("Candle period"),
-      count: z.number().optional().describe("Number of candles to return (max 1000, default 10)"),
-      direction: z.enum(["asc", "desc"]).optional().describe("Sort direction: 'asc' (oldest first) or 'desc' (newest first). Default: desc"),
+      title: "Get OHLCV candles",
+      description: "Fetch OHLCV candle data for an instrument. Useful for technical analysis and historical price research.",
+      inputSchema: {
+        instrumentId: z.number().int().positive().describe("Instrument ID"),
+        period: z
+          .enum(["OneMinute", "FiveMinutes", "TenMinutes", "FifteenMinutes", "ThirtyMinutes", "OneHour", "FourHours", "OneDay", "OneWeek"])
+          .describe("Candle period"),
+        count: z.number().int().min(1).max(1000).optional().describe("Number of candles to return (default 10, max 1000)"),
+        direction: z.enum(["asc", "desc"]).optional().describe("Sort: 'asc' (oldest first) or 'desc' (newest first). Default: desc"),
+      },
+      annotations: { readOnlyHint: true, idempotentHint: true },
     },
     withErrorHandling(async (args) => {
       const direction = args.direction || "desc";
@@ -132,23 +156,29 @@ export function registerMarketDataTools(server: McpServer, client: EtoroClient):
     })
   );
 
-  // 7. get_closing_prices
-  server.tool(
-    "get_closing_prices",
-    "Get historical closing prices for all instruments",
-    {},
+  server.registerTool(
+    "etoro_get_closing_prices",
+    {
+      title: "Get daily closing prices",
+      description: "Fetch historical closing prices across all instruments.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true, idempotentHint: true },
+    },
     withErrorHandling(async () => {
       const data = await client.get("/market-data/instruments/history/closing-price");
       return formatToolResponse(data);
     })
   );
 
-  // 8. get_rates
-  server.tool(
-    "get_rates",
-    "Get live bid/ask rates for instruments",
+  server.registerTool(
+    "etoro_get_rates",
     {
-      instrumentIds: z.array(z.number()).describe("Array of instrument IDs (max 100)"),
+      title: "Get live rates",
+      description: "Get live bid/ask rates for one or more instruments.",
+      inputSchema: {
+        instrumentIds: z.array(z.number().int().positive()).min(1).max(100).describe("Array of instrument IDs (1–100)"),
+      },
+      annotations: { readOnlyHint: true },
     },
     withErrorHandling(async (args) => {
       const ids = args.instrumentIds.join(",");

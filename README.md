@@ -3,7 +3,7 @@
 <div align="center">
   <img src="icon.png" alt="eToro MCP" width="100" />
 
-  Connect Claude to your eToro account for portfolio management, trading, and market research.
+  Connect Claude to your eToro account for portfolio analysis, market research, and trading.
 
   [![CI](https://img.shields.io/github/actions/workflow/status/gabrielcerutti/etoro-mcp-server/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/gabrielcerutti/etoro-mcp-server/actions/workflows/ci.yml)
   [![Node.js](https://img.shields.io/badge/node-%3E%3D24-brightgreen?style=flat-square)](https://nodejs.org)
@@ -11,127 +11,171 @@
   [![MCP SDK](https://img.shields.io/badge/MCP%20SDK-1.26%2B-purple?style=flat-square)](https://modelcontextprotocol.io)
   [![License: MIT](https://img.shields.io/badge/license-MIT-orange?style=flat-square)](LICENSE)
 
-  [Overview](#overview) • [Installation](#installation) • [Configuration](#configuration) • [Tools](#tools-34-total)
+  [Overview](#overview) • [Installation](#installation) • [Configuration](#configuration) • [Tools](#tools-35-total)
 </div>
 
 ---
 
 ## Overview
 
-MCP server that wraps the [eToro public API](https://public-api.etoro.com/api/v1), exposing **34 tools** for AI assistants (Claude Desktop, Cursor, Claude Code, etc.). Ask Claude to analyze your portfolio, place limit orders, research instruments, discover top traders, and manage watchlists — all in natural language.
+MCP server wrapping the [eToro public API](https://public-api.etoro.com/api/v1), exposing **35 tools** for AI assistants (Claude Desktop, Cursor, Claude Code, etc.). Built for **investment research and portfolio analysis** — assess positions, research instruments and themes, vet popular investors for copy-trading, backtest DCA strategies against historical data. Trading is fully supported, but use care: letting an AI agent place real-money orders is genuinely risky, and you should treat it as such.
 
 ## What Can You Do With It?
 
-Below are real conversations with an AI assistant connected to the eToro MCP server.
+The server is built around **research workflows** first. Below are illustrative conversations with an AI assistant connected to the eToro MCP server. Numbers and symbols are representative; actual responses draw from live eToro data.
 
-### Place a limit order
+### 1. Portfolio health check
 
-> **You:** Place a buy limit order for 5 SOL if it reaches $75
+> **You:** How is my portfolio doing this quarter? Give me the sector breakdown and flag my biggest drawdown.
 >
-> **Assistant:** Current SOL price is $78.21. I've placed a buy limit order for 5 SOL at $75 ($375 total) with a stop loss at $1. Order confirmed.
-
----
-
-### DCA ladder based on technical analysis
-
-> **You:** Can you place some DCA buy limit orders for ETH based on key support levels?
+> **Assistant:** Your portfolio snapshot:
 >
-> **Assistant:** Based on the chart, here are the key support levels for ETH:
+> - **Credit (cash):** $4,218 • **Invested:** $41,560 • **Unrealized P&L:** +$3,842 (+9.2%)
+> - **Positions:** 18 open • Longest-held: 412 days
 >
-> - $1,750 — first support zone
-> - $1,500 — strong horizontal support
-> - $1,200 — macro support
-> - $1,000 — psychological floor
+> **Sector exposure (approx.):**
 >
-> I've placed 4 limit orders:
->
-> | Level | Amount | ~ETH |
+> | Sector | % of invested | Unrealized P&L |
 > | --- | --- | --- |
-> | $1,750 | $1,000 | 0.57 |
-> | $1,500 | $1,500 | 1.00 |
-> | $1,200 | $2,000 | 1.67 |
-> | $1,000 | $2,500 | 2.50 |
+> | Technology | 38% | +14.1% |
+> | Consumer Cyclical | 19% | +6.8% |
+> | Crypto | 17% | −11.4% |
+> | Healthcare | 12% | +3.0% |
+> | Financials | 8% | +2.1% |
+> | Energy / Other | 6% | +0.4% |
+>
+> **Biggest drawdown:** SOL — averaged in at $121, currently $79.30 (−34%). This single position is dragging the crypto sleeve down 11%. Your tech sleeve has fully offset it at the portfolio level.
 
 ---
 
-### Portfolio analysis and average entry price
+### 2. Thematic research — AI-adjacent names
 
-> **You:** What's my average entry price on SOL including all my positions?
+> **You:** What AI-related names are available on eToro and which of them are popular investors loading up on right now?
 >
-> **Assistant:** You have 27 SOL positions totaling **124.62 SOL** with an average entry of **$120.99**.
+> **Assistant:** Searching for "AI" themed instruments:
 >
-> Including your 4 pending limit orders (39.81 SOL), if all trigger your new average would be **$106.14** on 164.43 SOL.
+> | Instrument | Live price | 1Y change |
+> | --- | --- | --- |
+> | NVDA — NVIDIA | $118.40 | +142% |
+> | PLTR — Palantir | $29.60 | +78% |
+> | AI — C3.ai | $24.10 | +11% |
+> | TAO — Bittensor | $512.00 | +64% |
+> | FET — Fetch.ai | $1.42 | +94% |
+>
+> **What popular investors (top-quartile annual gain, low risk score) are accumulating over the last 90 days:**
+>
+> - **NVDA** — 62% of popular investors holding, avg position size growing
+> - **PLTR** — newer cohort, 41% holding, recent adds concentrated in the last 30 days
+> - **TAO** — niche, only ~8% holding but those who do are scaling in aggressively
+>
+> Want me to build a watchlist for this theme?
 
 ---
 
-### Market research and opinion
+### 3. Copy-trading due diligence
 
-> **You:** What do you think about SUI?
+> **You:** Vet user jeppekirkbonde for a long-term copy allocation. I want the honest risk picture, not the marketing view.
 >
-> **Assistant:** SUI is trading at **$0.905**, down 75% from its October high of $3.70. Your 4 positions total 3,434 SUI at an average of $1.18 — currently -23%.
+> **Assistant:** Here's what the data says on **jeppekirkbonde**:
 >
-> **Key levels:** Support at $0.874 and $0.788. Resistance at $1.00 and $1.10.
+> **Performance:**
 >
-> **Catalysts:** SUI ETF applications under SEC review, SuiPlay0X1 gaming device launching Q3 2026. The $0.78-$0.85 zone is a strong accumulation area.
+> | Window | Gain | Max intra-period drawdown |
+> | --- | --- | --- |
+> | 1 year | +18.6% | −9.2% |
+> | 2 years | +44.1% | −18.7% (2022 tech sell-off) |
+> | 5 years | +210% | −28% (2020 covid) |
+>
+> - **Risk score:** 4/10 daily, 4/10 monthly (moderate)
+> - **Strategy:** Long-only, concentrated in US large-cap tech. Top 5 positions = 61% of portfolio. Avg holding period ≈ 380 days — genuine long-term style.
+> - **Copiers:** ~48k users with >1 year of copy relationship; most in "more than $1,000" allocation bracket.
+>
+> **What you should know:**
+>
+> 1. Drawdowns are real — a 2022-like environment will cost you 15–20% on paper.
+> 2. The concentration is a feature, not a bug; it's also the single biggest risk.
+> 3. Low portfolio turnover means copying behaves more like "passive tech tilt" than active management.
+>
+> Reasonable for a multi-year allocation if you can stomach the drawdowns. Not appropriate if you need the capital inside 18 months.
 
 ---
 
-### Daily market check
+### 4. Macro-aware portfolio review (no trade)
 
-> **You:** Check the market related to my portfolio today and tell me if there is some macro news that could explain
+> **You:** My portfolio is heavy on tech. Any risks on this week's macro calendar I should be aware of?
 >
-> **Assistant:**
+> **Assistant:** Your tech exposure totals ~$15,800 (38% of invested capital) across NVDA, MSFT, GOOGL, META, AAPL and two semi ETFs. This week's watch-list:
 >
-> | Asset | Price | Your Avg Entry | Status |
+> - **Wed** — CPI print (core consensus +0.3% MoM). A hotter number re-prices rate-cut odds → tech multiples compress first.
+> - **Thu** — Fed speakers (Williams, Waller). Any hawkish language extends the recent USD rally, which typically pressures mega-cap tech with international revenue.
+> - **Fri** — NVDA earnings (after close). Binary event for your largest position and the semi ETFs.
+>
+> **What this means for you specifically:**
+>
+> - A hot CPI + hawkish Fed combo could knock 3–5% off your tech sleeve short-term.
+> - NVDA earnings will drive ~30% of your week-over-week portfolio change whether you like it or not. Know your thesis before it prints.
+>
+> I'm not recommending any action — just flagging the concentration. Your stop-losses are already in place on 4 of 7 tech positions.
+
+---
+
+### 5. Watchlist curation for a thesis
+
+> **You:** Build me a "Defensive Quality" watchlist: large-cap US, dividend-paying, low historical volatility, minimum 10-year track record.
+>
+> **Assistant:** I searched across US large-caps, filtered by industry-weighted beta and dividend history. Here's a 12-name starter list:
+>
+> | Ticker | Sector | Div yield | 5Y β (approx) |
 > | --- | --- | --- | --- |
-> | **BTC** | $66,455 | ~$68,500 | Underwater on recent buys |
-> | **ETH** | $1,948 | ~$2,114 | Recovering |
-> | **SOL** | $79.32 | ~$121 | -34% |
-> | **SUI** | $0.93 | ~$1.18 | -21% |
-> | **LINK** | $8.42 | ~$14.4 | -41% |
+> | KO | Consumer Staples | 3.1% | 0.58 |
+> | PG | Consumer Staples | 2.4% | 0.46 |
+> | JNJ | Healthcare | 3.0% | 0.55 |
+> | MRK | Healthcare | 2.7% | 0.44 |
+> | WMT | Consumer Staples | 1.3% | 0.51 |
+> | VZ | Telecom | 6.4% | 0.42 |
+> | DUK | Utilities | 4.0% | 0.47 |
+> | SO | Utilities | 3.7% | 0.49 |
+> | AEP | Utilities | 3.9% | 0.50 |
+> | CL | Consumer Staples | 2.1% | 0.41 |
+> | PEP | Consumer Staples | 3.3% | 0.50 |
+> | NEE | Utilities | 3.2% | 0.56 |
 >
-> **What's driving the selloff:**
->
-> 1. CPI report tomorrow — expected +0.3% MoM, still above Fed's 2% target
-> 2. Strong US economic data reinforcing "higher for longer" rate narrative
-> 3. BTC broke below 365-day moving average for first time since March 2022
-> 4. Mixed Spot Bitcoin ETF flows — no institutional conviction
+> I've created a watchlist called **"Defensive Quality"** and added all 12. You can review it in the eToro app or ask me to drop any of them.
 
 ---
 
-### More examples
+### 6. DCA backtest against historical candles
+
+> **You:** Model a monthly $500 DCA into QQQ over the last 5 years. What would I have now? (No orders — research only.)
+>
+> **Assistant:** Pulling weekly QQQ candles back 5 years and simulating a $500 buy on the first trading day of each month:
+>
+> - **Total invested:** $30,000 (60 months × $500)
+> - **Total units accumulated:** ~90.4 QQQ
+> - **Current value:** $46,950
+> - **Realized gain on contributions:** +$16,950 (+56.5% on invested capital)
+> - **Approximate IRR:** 10.2% / year
+> - **Worst rolling 12-month period:** Jan 2022 – Jan 2023, paper drawdown of −31% on the accumulated stack
+>
+> Notable: your cost basis is smoothed because you bought through the 2022 drawdown — lump-sum at the start would have left you ~$3k poorer on paper through mid-2022, but ~$2k ahead today on a pure return basis. DCA lost a bit of upside; it bought you psychological durability.
+>
+> No orders placed.
+
+---
 
 <details>
-<summary>Discover top traders, manage watchlists, check prices</summary>
+<summary><b>Trading is also supported</b> — one example</summary>
 
-#### Find the best performing popular investors this year
+> [!WARNING]
+> **Letting an AI execute real-money trades is risky.** The same natural-language interface that makes research fast also makes it easy to misinterpret intent — a typo, an ambiguous number, a stale context from earlier in the conversation. Mitigations: start in `ETORO_TRADING_MODE=demo`, use read-only API keys for anything that doesn't need write access, and require explicit confirmation in your conversation before any `real` order.
 
-> **You:** Find me the best performing popular investors this year
+All examples above are research-only. When you're ready to execute, the same interface places orders. Orders always respect the configured `ETORO_TRADING_MODE` (`demo` for paper, `real` for live).
+
+> **You:** Place a buy limit order for 5 SOL if it reaches $75, with a stop-loss at $55.
 >
-> **Assistant:** Here are the top popular investors for the current year, sorted by gain...
+> **Assistant:** Current SOL is $78.21. Placed: **buy limit 5 SOL @ $75** ($375 notional), stop-loss $55. Order confirmed — ID `3418072`. Mode: `demo`.
 
----
-
-#### Create a watchlist
-
-> **You:** Create a watchlist called "AI Coins" and add SUI, NEAR, and TAO to it
->
-> **Assistant:** Done! Created watchlist "AI Coins" and added:
->
-> - SUI (Sui) — ID 100340
-> - NEAR (Near Protocol) — ID 100337
-> - TAO (Bittensor) — ID 100418
-
----
-
-#### Quick price check
-
-> **You:** What's the current price of Bitcoin and Ethereum?
->
-> **Assistant:** Live rates:
->
-> - **BTC**: $68,503 (bid) / $68,520 (ask)
-> - **ETH**: $1,801 (bid) / $1,803 (ask)
+Full trading coverage includes open position (by amount or units), partial close, limit orders, cancel order, and listing pending orders.
 
 </details>
 
@@ -208,63 +252,66 @@ claude mcp add etoro-mcp \
 
 ---
 
-## Tools (34 total)
+## Tools (35 total)
+
+All tools are prefixed with `etoro_` for namespace isolation when composed with other MCP servers.
 
 ### Market Data (8)
 
 | Tool | Description |
 | --- | --- |
-| `search_instruments` | Search instruments by keyword (e.g. "AAPL", "Bitcoin") |
-| `get_instruments` | Get instrument details by IDs |
-| `get_instrument_types` | List all instrument types (stocks, crypto, ETFs…) |
-| `get_industries` | List industry classifications |
-| `get_exchanges` | List stock exchanges |
-| `get_candles` | Get OHLCV candle data |
-| `get_closing_prices` | Get closing prices for instruments |
-| `get_rates` | Get live bid/ask rates |
+| `etoro_search_instruments` | Search instruments by keyword (e.g. "AAPL", "Bitcoin") or exact ticker |
+| `etoro_get_instruments` | Get full instrument details by IDs (1–100) |
+| `etoro_get_instrument_types` | List all instrument types (stocks, crypto, ETFs…) |
+| `etoro_get_industries` | List industry classifications |
+| `etoro_get_exchanges` | List stock exchanges |
+| `etoro_get_candles` | Get OHLCV candle data for technical analysis and backtesting |
+| `etoro_get_closing_prices` | Get historical daily closing prices |
+| `etoro_get_rates` | Get live bid/ask rates |
 
-### Trading (7)
-
-| Tool | Description |
-| --- | --- |
-| `open_position_by_amount` | Open position by USD amount |
-| `open_position_by_units` | Open position by unit count |
-| `close_position` | Close an open position |
-| `place_limit_order` | Place a limit/entry order |
-| `cancel_order` | Cancel a pending order |
-| `get_orders` | List all pending orders |
-| `get_portfolio` | Get all open positions |
-
-### Social Feeds (4)
+### Portfolio & Trading (7)
 
 | Tool | Description |
 | --- | --- |
-| `get_instrument_feed` | Get social feed for an instrument |
-| `get_user_feed` | Get social feed for a user |
-| `create_post` | Create a social feed post |
-| `create_comment` | Comment on a post |
+| `etoro_get_portfolio` | Get portfolio + P&L: positions, unrealized P&L, exposure summary, longest holding |
+| `etoro_get_orders` | List all pending orders (limit / entry) |
+| `etoro_get_trade_history` | Closed-trade history (entry/exit, P&L, duration). Primary source for performance research |
+| `etoro_open_position` | Open position by USD amount **or** units (unified tool) |
+| `etoro_close_position` | Close an open position fully, or partially via `unitsToDeduct` |
+| `etoro_place_limit_order` | Place a limit / entry order |
+| `etoro_cancel_order` | Cancel a pending order |
+
+### User & Discovery (7)
+
+| Tool | Description |
+| --- | --- |
+| `etoro_get_current_user` | Get the authenticated user's identity (GCID, real / demo CIDs) |
+| `etoro_get_user_profile` | Get a user's public profile |
+| `etoro_get_user_performance` | Get performance summary (optionally by time period) |
+| `etoro_get_user_trades` | Get a user's trade info for a period |
+| `etoro_get_user_portfolio` | Get a user's live public portfolio holdings |
+| `etoro_discover_users` | Discover popular investors filtered by gain, risk score, period |
+| `etoro_get_copiers` | Get info about users copying your portfolio |
 
 ### Watchlists (9)
 
 | Tool | Description |
 | --- | --- |
-| `get_watchlists` | List your watchlists |
-| `create_watchlist` | Create a watchlist |
-| `delete_watchlist` | Delete a watchlist |
-| `rename_watchlist` | Rename a watchlist |
-| `add_watchlist_items` | Add instruments to a watchlist |
-| `remove_watchlist_item` | Remove an instrument from a watchlist |
-| `set_default_watchlist` | Set default watchlist |
-| `get_curated_lists` | Get eToro's curated lists |
-| `get_public_watchlists` | Browse public watchlists |
+| `etoro_get_watchlists` | List your watchlists |
+| `etoro_create_watchlist` | Create a watchlist |
+| `etoro_delete_watchlist` | Delete a watchlist |
+| `etoro_rename_watchlist` | Rename a watchlist |
+| `etoro_add_watchlist_items` | Add instruments to a watchlist |
+| `etoro_remove_watchlist_item` | Remove an instrument from a watchlist |
+| `etoro_set_default_watchlist` | Set default watchlist |
+| `etoro_get_curated_lists` | Get eToro's curated lists |
+| `etoro_get_public_watchlists` | Browse a user's public watchlists |
 
-### User & Discovery (6)
+### Social Feeds (4)
 
 | Tool | Description |
 | --- | --- |
-| `get_user_profile` | Get a user's public profile |
-| `get_user_performance` | Get performance summary |
-| `get_user_performance_granular` | Get detailed performance over a period |
-| `get_user_trades` | Get trade history |
-| `get_user_portfolio` | Get public portfolio holdings |
-| `discover_users` | Discover popular investors (filterable) |
+| `etoro_get_instrument_feed` | Get social feed for an instrument |
+| `etoro_get_user_feed` | Get social feed for a user |
+| `etoro_create_post` | Create a social feed post |
+| `etoro_create_comment` | Comment on a post |

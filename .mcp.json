@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "etoro-api-docs": {
+      "type": "http",
+      "url": "https://api-portal.etoro.com/mcp"
+    }
+  }
+}

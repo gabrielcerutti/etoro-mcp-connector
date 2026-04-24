@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { EtoroClient } from "../client/etoro-client.js";
 import { formatToolResponse, withErrorHandling } from "../utils/errors.js";
+import { buildQueryString } from "../utils/http.js";
 
 interface FeedResponse {
   discussions: Array<Record<string, unknown>>;
@@ -39,59 +40,61 @@ function trimFeed(data: FeedResponse) {
 }
 
 export function registerFeedsTools(server: McpServer, client: EtoroClient): void {
-  // 1. get_instrument_feed
-  server.tool(
-    "get_instrument_feed",
-    "Get the social feed for a specific instrument (posts, discussions)",
+  server.registerTool(
+    "etoro_get_instrument_feed",
     {
-      instrumentId: z.number().describe("Instrument ID"),
-      take: z.number().optional().describe("Number of posts to retrieve (default 20, max 100)"),
-      offset: z.number().optional().describe("Number of posts to skip (default 0)"),
+      title: "Get instrument feed",
+      description: "Get the social feed (posts, discussions) for a specific instrument.",
+      inputSchema: {
+        instrumentId: z.number().int().positive().describe("Instrument ID"),
+        take: z.number().int().min(1).max(100).optional().describe("Number of posts to retrieve (default 20, max 100)"),
+        offset: z.number().int().min(0).optional().describe("Number of posts to skip (default 0)"),
+      },
+      annotations: { readOnlyHint: true },
     },
     withErrorHandling(async (args) => {
-      const params = new URLSearchParams();
-      if (args.take) params.set("take", String(args.take));
-      if (args.offset) params.set("offset", String(args.offset));
-      const query = params.toString() ? `?${params}` : "";
+      const query = buildQueryString({ take: args.take, offset: args.offset });
       const data = await client.get<FeedResponse>(`/feeds/instrument/${args.instrumentId}${query}`);
       return formatToolResponse(trimFeed(data));
     })
   );
 
-  // 2. get_user_feed
-  server.tool(
-    "get_user_feed",
-    "Get the social feed for a specific user",
+  server.registerTool(
+    "etoro_get_user_feed",
     {
-      username: z.string().describe("eToro username"),
-      take: z.number().optional().describe("Number of posts to retrieve (default 20, max 100)"),
-      offset: z.number().optional().describe("Number of posts to skip (default 0)"),
+      title: "Get user feed",
+      description: "Get the social feed (posts, discussions) for a specific user by their eToro username.",
+      inputSchema: {
+        username: z.string().min(1).describe("eToro username"),
+        take: z.number().int().min(1).max(100).optional().describe("Number of posts to retrieve (default 20, max 100)"),
+        offset: z.number().int().min(0).optional().describe("Number of posts to skip (default 0)"),
+      },
+      annotations: { readOnlyHint: true },
     },
     withErrorHandling(async (args) => {
-      // Resolve username to numeric gcid
       const profile = await client.get<{ users: Array<{ gcid: number }> }>(
         `/user-info/people?usernames=${encodeURIComponent(args.username)}`
       );
       if (!profile.users?.length) {
-        return formatToolResponse({ error: `User "${args.username}" not found` });
+        throw new Error(`User "${args.username}" not found`);
       }
       const userId = profile.users[0].gcid;
-      const params = new URLSearchParams();
-      if (args.take) params.set("take", String(args.take));
-      if (args.offset) params.set("offset", String(args.offset));
-      const query = params.toString() ? `?${params}` : "";
+      const query = buildQueryString({ take: args.take, offset: args.offset });
       const data = await client.get<FeedResponse>(`/feeds/user/${userId}${query}`);
       return formatToolResponse(trimFeed(data));
     })
   );
 
-  // 3. create_post
-  server.tool(
-    "create_post",
-    "Create a new post on the eToro social feed",
+  server.registerTool(
+    "etoro_create_post",
     {
-      content: z.string().describe("Post content/text"),
-      instrumentId: z.number().optional().describe("Optional instrument ID to tag"),
+      title: "Create feed post",
+      description: "Create a new post on the eToro social feed. Optionally tag an instrument.",
+      inputSchema: {
+        content: z.string().min(1).describe("Post content / text"),
+        instrumentId: z.number().int().positive().optional().describe("Optional instrument ID to tag in the post"),
+      },
+      annotations: { destructiveHint: false, openWorldHint: true },
     },
     withErrorHandling(async (args) => {
       const body: Record<string, unknown> = { message: args.content };
@@ -103,13 +106,16 @@ export function registerFeedsTools(server: McpServer, client: EtoroClient): void
     })
   );
 
-  // 4. create_comment
-  server.tool(
-    "create_comment",
-    "Add a comment to an existing post on the eToro social feed",
+  server.registerTool(
+    "etoro_create_comment",
     {
-      postId: z.string().describe("ID of the post to comment on"),
-      content: z.string().describe("Comment content/text"),
+      title: "Comment on a post",
+      description: "Add a comment to an existing post on the eToro social feed.",
+      inputSchema: {
+        postId: z.string().min(1).describe("ID of the post to comment on"),
+        content: z.string().min(1).describe("Comment content / text"),
+      },
+      annotations: { destructiveHint: false, openWorldHint: true },
     },
     withErrorHandling(async (args) => {
       const data = await client.post(`/reactions/${args.postId}/comment`, {
