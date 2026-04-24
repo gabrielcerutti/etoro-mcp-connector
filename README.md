@@ -237,6 +237,14 @@ claude mcp add etoro-mcp \
 
 ---
 
+## MCP Registry
+
+This server is listed on the [MCP Registry](https://registry.modelcontextprotocol.io) under the name [`io.github.gabrielcerutti/etoro-mcp-server`](https://registry.modelcontextprotocol.io/v0/servers?search=etoro-mcp-server). The registry is the public index of MCP servers — think of it as a package registry for AI tools, analogous to what npm is for JavaScript libraries. MCP-compatible clients use it to discover and install servers programmatically without users having to hand-copy configuration.
+
+Each tagged release of this repository is auto-published to the registry by GitHub Actions (via OIDC), so the entry always tracks the latest npm version.
+
+---
+
 ## Configuration
 
 | Setting | Env var | CLI arg | Default |

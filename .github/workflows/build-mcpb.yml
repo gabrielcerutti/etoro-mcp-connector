@@ -43,13 +43,20 @@ jobs:
         run: |
           node -e "
             const fs = require('fs');
+            const v = '${{ inputs.version }}';
             const m = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
-            m.version = '${{ inputs.version }}';
+            m.version = v;
             fs.writeFileSync('manifest.json', JSON.stringify(m, null, 2) + '\n');
             const p = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            p.version = '${{ inputs.version }}';
+            p.version = v;
             fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
-            console.log('Version set to ${{ inputs.version }}');
+            const s = JSON.parse(fs.readFileSync('server.json', 'utf8'));
+            s.version = v;
+            if (Array.isArray(s.packages)) {
+              s.packages.forEach(pkg => { pkg.version = v; });
+            }
+            fs.writeFileSync('server.json', JSON.stringify(s, null, 2) + '\n');
+            console.log('Version set to ' + v + ' (manifest.json, package.json, server.json)');
           "
 
       - name: Build TypeScript
@@ -76,7 +83,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add manifest.json package.json
+          git add manifest.json package.json server.json
           git commit -m "chore: bump version to v${{ steps.get_version.outputs.version }}"
           git push
 
@@ -101,3 +108,16 @@ jobs:
 
       - name: Publish to npm
         run: npm publish --provenance --access public
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L -o mcp-publisher.tar.gz \
+            "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz"
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+          chmod +x mcp-publisher
+          rm mcp-publisher.tar.gz
+
+      - name: Publish to MCP Registry
+        run: |
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.gabrielcerutti/etoro-mcp-server",
+  "title": "eToro MCP Server",
+  "description": "Connect Claude to your eToro account for portfolio analysis, market research, and trading.",
+  "version": "1.1.0",
+  "websiteUrl": "https://github.com/gabrielcerutti/etoro-mcp-server",
+  "repository": {
+    "url": "https://github.com/gabrielcerutti/etoro-mcp-server",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "etoro-mcp-server",
+      "version": "1.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "ETORO_API_KEY",
+          "description": "Your eToro API key (x-api-key header value).",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "ETORO_USER_KEY",
+          "description": "Your eToro user key (x-user-key header value) tied to your account.",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "ETORO_TRADING_MODE",
+          "description": "Use 'demo' for the practice account or 'real' for live trading.",
+          "default": "demo",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}
