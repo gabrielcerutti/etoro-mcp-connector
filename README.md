@@ -3,7 +3,7 @@
 <div align="center">
   <img src="icon.png" alt="eToro MCP" width="100" />
 
-  Connect Claude to your eToro account for portfolio analysis, market research, and trading.
+  Connect any MCP-compatible AI assistant (Claude, Cursor, and others) to your eToro account for portfolio analysis, market research, and trading.
 
   [![CI](https://img.shields.io/github/actions/workflow/status/gabrielcerutti/etoro-mcp-server/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/gabrielcerutti/etoro-mcp-server/actions/workflows/ci.yml)
   [![Node.js](https://img.shields.io/badge/node-%3E%3D24-brightgreen?style=flat-square)](https://nodejs.org)
@@ -196,28 +196,60 @@ You'll be prompted for your API Key, User Key, and trading mode. That's it.
 
 ---
 
-### Manual setup (Claude Code / Claude Desktop)
+### Via npm (Claude Code, Cursor, Continue, Cody, …)
 
-For developers who want to run from source.
+Add this to your client's MCP config — it'll launch the server from the published npm package on demand, no local install needed:
 
-#### 1. Build
+```json
+{
+  "mcpServers": {
+    "etoro": {
+      "command": "npx",
+      "args": ["-y", "etoro-mcp-server"],
+      "env": {
+        "ETORO_API_KEY": "your-api-key",
+        "ETORO_USER_KEY": "your-user-key",
+        "ETORO_TRADING_MODE": "demo"
+      }
+    }
+  }
+}
+```
+
+For Claude Code, the equivalent CLI command:
+
+```bash
+claude mcp add etoro \
+  -e ETORO_API_KEY=your-api-key \
+  -e ETORO_USER_KEY=your-user-key \
+  -e ETORO_TRADING_MODE=demo \
+  -- npx -y etoro-mcp-server
+```
+
+Pin a specific version with `etoro-mcp-server@1.1.0` in the args if you want stability over auto-updates.
+
+---
+
+### From source (developers)
+
+If you want to hack on the server locally, clone the repo and build:
 
 ```bash
 npm install
 npm run build
 ```
 
-#### 2. Add to Claude Code
+Then point your MCP client at the built file (`dist/index.js`):
 
 ```bash
 claude mcp add etoro-mcp \
   -e ETORO_API_KEY=your-api-key \
   -e ETORO_USER_KEY=your-user-key \
   -e ETORO_TRADING_MODE=demo \
-  node /path/to/etoro-mcp/dist/index.js
+  -- node /path/to/etoro-mcp/dist/index.js
 ```
 
-#### 3. Add to Claude Desktop (`claude_desktop_config.json`)
+Or in `claude_desktop_config.json` / equivalent:
 
 ```json
 {
